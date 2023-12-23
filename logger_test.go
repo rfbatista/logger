@@ -18,6 +18,8 @@ func TestLogger(t *testing.T) {
 		{"Error", Error, "Error message", fmt.Sprintf("%s[%s]%s Error message", Red, "ERROR", Reset)},
 		{"Warning", Warning, "Warning message", fmt.Sprintf("%s[%s]%s Warning message", Yellow, "WARN", Reset)},
 		{"Info", Info, "Info message", fmt.Sprintf("%s[%s]%s Info message", Green, "INFO", Reset)},
+		{"Debug", Debug, "Debug message", fmt.Sprintf("%s[%s]%s Debug message", Purple, "DEBUG", Reset)},
+		{"Critical", Critical, "Critical message", fmt.Sprintf("%s[%s]%s Critical message", BgRed, "CRITICAL", Reset)},
 	}
 
 	for _, tt := range tests {
@@ -35,6 +37,10 @@ func TestLogger(t *testing.T) {
 				logger.Warning(tt.message)
 			case Info:
 				logger.Info(tt.message)
+			case Critical:
+				logger.Critical(tt.message)
+			case Debug:
+				logger.Debug(tt.message)
 			}
 
 			output := buf.String()

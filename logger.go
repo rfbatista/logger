@@ -48,6 +48,7 @@ const (
 	Error
 	Warning
 	Info
+  Critical
 )
 
 type Logger struct {
