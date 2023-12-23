@@ -9,9 +9,12 @@ import (
 // ANSI escape codes for text formatting
 const (
 	Reset  = "\033[0m"
-	Red    = "\033[31m"
-	Yellow = "\033[33m"
-	Green  = "\033[32m"
+	Red    = "\033[91m"
+	Yellow = "\033[93m"
+	Green  = "\033[92m"
+	Purple  = "\033[94m"
+	BgRed   = "\033[41m"
+	BgPurple   = "\033[44m"
 )
 
 type LoggerConfig struct {
@@ -20,52 +23,66 @@ type LoggerConfig struct {
 	WithDateTime bool
 }
 
+func applyFormat(color string, flag string) string {
+	return fmt.Sprintf("%s[%s]%s ", color, flag, Reset)
+}
+
 func New(c LoggerConfig) (*Logger, error) {
 	var wr io.Writer = c.WriteTo
 	var flag int
 	if c.WithDateTime == true {
 		flag = log.Ldate | log.Ltime | log.Lshortfile
 	}
-	InfoLogger := log.New(wr, fmt.Sprintf("%s[%s]%s ", Green, "INFO", Reset), flag)
-	WarningLogger := log.New(wr, fmt.Sprintf("%s[%s]%s ", Yellow, "WARN", Reset), flag)
-	ErrorLogger := log.New(wr, fmt.Sprintf("%s[%s]%s ", Red, "ERROR", Reset), flag)
-	return &Logger{level: c.LogLevel, info: InfoLogger, warn: WarningLogger, error: ErrorLogger}, nil
+	InfoLogger := log.New(wr, applyFormat(Green, "INFO"), flag)
+	WarningLogger := log.New(wr, applyFormat(Yellow, "WARN"), flag)
+	ErrorLogger := log.New(wr, applyFormat(Red, "ERROR"), flag)
+	CriticalLogger := log.New(wr, applyFormat(BgRed, "CRITICAL"), flag)
+	DebugLogger := log.New(wr, applyFormat(Purple, "DEBUG"), flag)
+	return &Logger{level: c.LogLevel, info: InfoLogger, warn: WarningLogger, error: ErrorLogger, critical: CriticalLogger, debug: DebugLogger}, nil
 }
 
-// LogLevel represents different logging levels.
 type LogLevel int
 
 const (
-	Error LogLevel = iota
+	Debug LogLevel = iota
+	Error
 	Warning
 	Info
 )
 
-// Logger is a simple logger struct.
 type Logger struct {
-	level LogLevel
-	info  *log.Logger
-	error *log.Logger
-	warn  *log.Logger
+	level    LogLevel
+	info     *log.Logger
+	error    *log.Logger
+	warn     *log.Logger
+	critical *log.Logger
+	debug    *log.Logger
 }
 
-// Error logs an error message.
 func (l *Logger) Error(message string) {
 	if l.level <= Error {
 		l.error.Println(message)
 	}
 }
 
-// Warning logs a warning message.
 func (l *Logger) Warning(message string) {
 	if l.level <= Warning {
 		l.warn.Println(message)
 	}
 }
 
-// Info logs an info message.
 func (l *Logger) Info(message string) {
 	if l.level <= Info {
 		l.info.Println(message)
+	}
+}
+
+func (l *Logger) Critical(message string) {
+	l.critical.Println(message)
+}
+
+func (l *Logger) Debug(message string) {
+	if l.level <= Debug {
+		l.debug.Println(message)
 	}
 }
