@@ -3,7 +3,6 @@ package logger
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 )
@@ -15,41 +14,70 @@ func TestLogger(t *testing.T) {
 		message  string
 		expected string
 	}{
-		{"Error", Error, "Error message", fmt.Sprintf("%s[%s]%s Error message", Red, "ERROR", Reset)},
-		{"Warning", Warning, "Warning message", fmt.Sprintf("%s[%s]%s Warning message", Yellow, "WARN", Reset)},
-		{"Info", Info, "Info message", fmt.Sprintf("%s[%s]%s Info message", Green, "INFO", Reset)},
-		{"Debug", Debug, "Debug message", fmt.Sprintf("%s[%s]%s Debug message", Purple, "DEBUG", Reset)},
-		{"Critical", Critical, "Critical message", fmt.Sprintf("%s[%s]%s Critical message", BgRed, "CRITICAL", Reset)},
+		{"Error", ErrorLevel, "Error message", fmt.Sprintf("%s[%s]%s Error message", Red, "ERROR", Reset)},
+		{"Warning", WarningLevel, "Warning message", fmt.Sprintf("%s[%s]%s Warning message", Yellow, "WARN", Reset)},
+		{"Info", InfoLevel, "Info message", fmt.Sprintf("%s[%s]%s Info message", Green, "INFO", Reset)},
+		{"Debug", DebugLevel, "Debug message", fmt.Sprintf("%s[%s]%s Debug message", Purple, "DEBUG", Reset)},
+		{"Critical", CriticalLevel, "Critical message", fmt.Sprintf("%s[%s]%s Critical message", BgRed, "CRITICAL", Reset)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Redirect log output to a buffer for testing
 			var buf bytes.Buffer
-			log.SetOutput(&buf)
 
 			logger, _ := New(LoggerConfig{LogLevel: tt.level, WithDateTime: false, WriteTo: &buf})
 
 			switch tt.level {
-			case Error:
+			case ErrorLevel:
 				logger.Error(tt.message)
-			case Warning:
+			case WarningLevel:
 				logger.Warning(tt.message)
-			case Info:
+			case InfoLevel:
 				logger.Info(tt.message)
-			case Critical:
+			case CriticalLevel:
 				logger.Critical(tt.message)
-			case Debug:
+			case DebugLevel:
 				logger.Debug(tt.message)
 			}
 
 			output := buf.String()
 
-			// Check if the expected log message is present
 			if strings.TrimRight(output, "\r\n") != tt.expected {
 				t.Errorf("Expected log output: %s, got: %s", tt.expected, output)
 			}
 
 		})
 	}
+
+	t.Run("should not log info message if level is error", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, _ := New(LoggerConfig{LogLevel: ErrorLevel, WithDateTime: false, WriteTo: &buf})
+		logger.Info("info message")
+		output := buf.String()
+		if output != "" {
+			t.Errorf("expected to not log info message : %s", output)
+		}
+	})
+
+	t.Run("should not log debug message if level is info", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, _ := New(LoggerConfig{LogLevel: InfoLevel, WithDateTime: false, WriteTo: &buf})
+		logger.Debug("info message")
+		output := buf.String()
+		if output != "" {
+			t.Errorf("expected to not log info message : %s", output)
+		}
+	})
+
+	t.Run("should not log warning message if level is error", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, _ := New(LoggerConfig{LogLevel: ErrorLevel, WithDateTime: false, WriteTo: &buf})
+		logger.Warning("info message")
+		output := buf.String()
+		if output != "" {
+			t.Errorf("expected to not log info message : %s", output)
+		}
+	})
+
+
 }
